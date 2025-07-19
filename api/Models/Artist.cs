@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace api.Models;
 
@@ -20,6 +21,8 @@ public class Artist
     public string? SocialMediaLinks { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    [JsonIgnore]
     public ICollection<Product>? Products { get; set; }
+    [JsonIgnore]
     public ICollection<EventArtist>? EventArtists { get; set; }
 }

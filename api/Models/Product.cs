@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace api.Models;
 
@@ -21,8 +22,13 @@ public class Product
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     public int CategoryId { get; set; }
+    
+    [JsonIgnore]
     public Category? Category { get; set; }
 
+    [JsonIgnore]
     public Artist? Artist { get; set; }
+
+    [JsonIgnore]
     public ICollection<Review>? Reviews { get; set; }
 }

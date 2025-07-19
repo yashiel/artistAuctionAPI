@@ -1,4 +1,5 @@
 using api.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
@@ -22,6 +23,8 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddDbContext<AuctionDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("Connection")));
 
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<AuctionDbContext>().AddDefaultTokenProviders();
 
 
 

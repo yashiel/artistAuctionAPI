@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using api.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace api.Data;
 
-public class AuctionDbContext : DbContext
+public class AuctionDbContext : IdentityDbContext<IdentityUser>
 {
     public AuctionDbContext(DbContextOptions options) : base(options) { }
 

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using api.Enum;
 
 namespace api.Models;
@@ -20,8 +21,6 @@ public class Order
 
     [Required]
     public OrderStatus OrderStatus { get; set; }
-
-    public ICollection<OrderItem>? OrderItems { get; set; }
     
     [Range(0.0, 100000.0)]
     public decimal TotalAmount { get; set; } = 0.0m;
@@ -29,4 +28,7 @@ public class Order
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    [JsonIgnore]
+    public ICollection<OrderItem>? OrderItems { get; set; }
 }

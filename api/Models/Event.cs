@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace api.Models;
 
@@ -19,7 +20,7 @@ public class Event
     public DateTime StartDate { get; set; }
 
     public DateTime EndDate { get; set; }
-
+    [JsonIgnore]
     public ICollection<EventArtist>? EventArtists { get; set; }
 
 }
