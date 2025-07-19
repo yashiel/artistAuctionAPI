@@ -1,4 +1,5 @@
 using api.Data;
+using api.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -26,7 +27,8 @@ builder.Services.AddDbContext<AuctionDbContext>(options =>
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<AuctionDbContext>().AddDefaultTokenProviders();
 
-
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddScoped<EmailService>();
 
 
 
@@ -46,3 +48,5 @@ app.UseHttpsRedirection();
 app.MapControllers();
 
 app.Run();
+
+
