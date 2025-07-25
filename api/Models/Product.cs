@@ -19,8 +19,8 @@ public class Product
     [Range(0.0, 100000.0)]
     public decimal Price { get; set; }
     public string ImageUrl { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime UpdatedAt { get; set; } = DateTime.Now;
     public int CategoryId { get; set; }
     
     [JsonIgnore]

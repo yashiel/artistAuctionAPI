@@ -16,11 +16,11 @@ public class Artist
     public string? Genre { get; set; }
     public string? Country { get; set; }
     public DateTime? BirthDate { get; set; }
-    public DateTime? DeathDate { get; set; }
+    public DateTime? DeathDate { get; set; } = null;
     public string? WebsiteUrl { get; set; }
     public string? SocialMediaLinks { get; set; }
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
+    public DateTime UpdatedAt { get; set; } = DateTime.Now;
     [JsonIgnore]
     public ICollection<Product>? Products { get; set; }
     [JsonIgnore]

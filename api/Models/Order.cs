@@ -17,7 +17,7 @@ public class Order
     public string CustomerEmail { get; set; } = string.Empty;
 
     [Required]
-    public DateTime OrderDate { get; set; } = DateTime.UtcNow;
+    public DateTime OrderDate { get; set; } = DateTime.Now;
 
     [Required]
     public OrderStatus OrderStatus { get; set; }
@@ -25,9 +25,9 @@ public class Order
     [Range(0.0, 100000.0)]
     public decimal TotalAmount { get; set; } = 0.0m;
     
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.Now;
     
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
     [JsonIgnore]
     public ICollection<OrderItem>? OrderItems { get; set; }
