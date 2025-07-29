@@ -1,6 +1,6 @@
 ﻿using api.Models;
 
-namespace api.Services;
+namespace api.Interfaces;
 
 public interface IReviewService
 {
