@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace api.Repository;
 
-public class ArtistService : IArtistService
+public class ArtistRepository : IArtistService
 {
     private readonly AuctionDbContext _context;
 
-    public ArtistService(AuctionDbContext context)
+    public ArtistRepository(AuctionDbContext context)
     {
         _context = context;
     }

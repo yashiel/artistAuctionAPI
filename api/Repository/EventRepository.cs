@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace api.Repository;
 
-public class EventService : IEventService
+public class EventRepository : IEventService
 {
     private readonly AuctionDbContext _context;
-    public EventService(AuctionDbContext context)
+    public EventRepository(AuctionDbContext context)
     {
         _context = context;
     }

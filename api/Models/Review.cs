@@ -13,6 +13,10 @@ public class Review
     [StringLength(50, MinimumLength = 3)]
     public string? ReviewerName { get; set; }
 
+    [Required]
+    [EmailAddress]
+    public string? ReviewerEmail { get; set; }
+
     [MaxLength(1000)]
     public string? Comment { get; set; } = string.Empty;
     

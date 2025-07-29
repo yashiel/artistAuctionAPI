@@ -6,10 +6,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace api.Repository;
 
-public class OrderService : IOrderService
+public class OrderRepository : IOrderService
 {
     public readonly AuctionDbContext _context;
-    public OrderService(AuctionDbContext context)
+    public OrderRepository(AuctionDbContext context)
     {
         _context = context;
     }

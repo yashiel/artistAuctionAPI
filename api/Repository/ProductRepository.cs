@@ -5,10 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace api.Repository;
 
-public class ProductService : IProductService
+public class ProductRepository : IProductService
 {
     private readonly AuctionDbContext _context;
-    public ProductService(AuctionDbContext context)
+    public ProductRepository(AuctionDbContext context)
     {
         _context = context;
     }

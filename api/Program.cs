@@ -14,10 +14,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-builder.Services.AddScoped<IArtistService, ArtistService>();
-builder.Services.AddScoped<IEventService, EventService>();
-builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IArtistService, ArtistRepository>();
+builder.Services.AddScoped<IEventService, EventRepository>();
+builder.Services.AddScoped<IOrderService, OrderRepository>();
+builder.Services.AddScoped<IProductService, ProductRepository>();
+builder.Services.AddScoped<IReviewService, ReviewRepository>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
