@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using api.Data;
 using api.Models;
+using api.Services;
 
 namespace api.Controllers
 {
@@ -16,30 +17,59 @@ namespace api.Controllers
     {
         private readonly AuctionDbContext _context;
 
-        public ArtistsController(AuctionDbContext context)
+        private readonly IArtistService _artistService;
+        private readonly ILogger<ArtistsController> _logger;
+
+        public ArtistsController(IArtistService artistService, ILogger<ArtistsController> logger)
         {
-            _context = context;
+            _artistService = artistService ?? throw new ArgumentNullException(nameof(artistService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         // GET: api/Artists
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Artist>>> GetArtists()
         {
-            return await _context.Artists.ToListAsync();
+            try
+            {
+                _logger.LogInformation("Fetching all artists from the database.");
+                var artists = await _artistService.GetAllArtistsAsync();
+                if (artists == null || !artists.Any())
+                {
+                    _logger.LogWarning("No artists found in the database.");
+                    return NotFound("No artists found.");
+                }
+                _logger.LogInformation($"Found {artists.Count()} artists.");
+                return Ok(artists);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "An error occurred while fetching artists.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while fetching artists.");
+            }
         }
 
         // GET: api/Artists/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Artist>> GetArtist(int id)
         {
-            var artist = await _context.Artists.FindAsync(id);
-
-            if (artist == null)
+            try
             {
-                return NotFound();
+                _logger.LogInformation($"Fetching artist with ID {id} from the database.");
+                var artist = await _artistService.GetArtistByIdAsync(id);
+                if (artist == null)
+                {
+                    _logger.LogWarning($"Artist with ID {id} not found.");
+                    return NotFound($"Artist with ID {id} not found.");
+                }
+                _logger.LogInformation($"Artist with ID {id} found.");
+                return Ok(artist);
             }
-
-            return artist;
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, $"An error occurred while fetching artist with ID {id}.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while fetching the artist.");
+            }
         }
 
         // PUT: api/Artists/5
@@ -47,30 +77,36 @@ namespace api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutArtist(int id, Artist artist)
         {
-            if (id != artist.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(artist).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                if (id != artist.Id)
+                {
+                    _logger.LogWarning($"Artist ID mismatch: {id} does not match {artist.Id}.");
+                    return BadRequest("Artist ID mismatch.");
+                }
+                _logger.LogInformation($"Updating artist with ID {id}.");
+                await _artistService.UpdateArtistAsync(id, artist);
+                _logger.LogInformation($"Artist with ID {id} updated successfully.");
+                return NoContent();
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ArtistExists(id))
+                if (await _artistService.GetArtistByIdAsync(id) == null)
                 {
-                    return NotFound();
+                    _logger.LogWarning($"Artist with ID {id} not found for update.");
+                    return NotFound($"Artist with ID {id} not found.");
                 }
                 else
                 {
+                    _logger.LogError($"Concurrency error occurred while updating artist with ID {id}.");
                     throw;
                 }
             }
-
-            return NoContent();
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, $"An error occurred while updating artist with ID {id}.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while updating the artist.");
+            }
         }
 
         // POST: api/Artists
@@ -78,26 +114,46 @@ namespace api.Controllers
         [HttpPost]
         public async Task<ActionResult<Artist>> PostArtist(Artist artist)
         {
-            _context.Artists.Add(artist);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetArtist", new { id = artist.Id }, artist);
+            try
+            {
+                if (artist == null)
+                {
+                    _logger.LogWarning("Recieved empty student object");
+                    return BadRequest("Artist object cannot be null.");
+                }
+                await _artistService.AddArtistAsync(artist);
+                _logger.LogInformation($"Artist with ID {artist.Id} created successfully.");
+                return CreatedAtAction("GetArtist", new { id = artist.Id }, artist);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "An error occurred while creating the artist.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while creating the artist.");
+            }
         }
 
         // DELETE: api/Artists/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteArtist(int id)
         {
-            var artist = await _context.Artists.FindAsync(id);
-            if (artist == null)
+            try
             {
-                return NotFound();
+                var artist = await _artistService.GetArtistByIdAsync(id);
+                if (artist == null)
+                {
+                    _logger.LogWarning($"Artist with ID {id} not found for deletion.");
+                    return NotFound($"Artist with ID {id} not found.");
+                }
+
+                await _artistService.DeleteArtistAsync(id);
+                _logger.LogInformation($"Artist with ID {id} deleted successfully.");
+                return NoContent();
             }
-
-            _context.Artists.Remove(artist);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, $"An error occurred while deleting artist with ID {id}.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while deleting the artist.");
+            }
         }
 
         private bool ArtistExists(int id)
