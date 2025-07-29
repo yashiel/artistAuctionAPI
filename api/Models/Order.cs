@@ -7,9 +7,9 @@ namespace api.Models;
 public class Order
 {
     public int Id { get; set; }
-    
+
     [Required]
-    [MaxLength(100)]
+    [StringLength(100, MinimumLength = 3)]
     public string CustomerName { get; set; } = string.Empty;
 
     [Required]

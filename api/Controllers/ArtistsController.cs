@@ -15,8 +15,6 @@ namespace api.Controllers
     [ApiController]
     public class ArtistsController : ControllerBase
     {
-        private readonly AuctionDbContext _context;
-
         private readonly IArtistService _artistService;
         private readonly ILogger<ArtistsController> _logger;
 
@@ -154,11 +152,6 @@ namespace api.Controllers
                 _logger.LogError(exception, $"An error occurred while deleting artist with ID {id}.");
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while deleting the artist.");
             }
-        }
-
-        private bool ArtistExists(int id)
-        {
-            return _context.Artists.Any(e => e.Id == id);
         }
     }
 }

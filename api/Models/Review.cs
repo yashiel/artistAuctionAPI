@@ -10,7 +10,7 @@ public class Review
     public int ProductId { get; set; }
     
     [Required]
-    [MaxLength(100)]
+    [StringLength(50, MinimumLength = 3)]
     public string? ReviewerName { get; set; }
 
     [MaxLength(1000)]
