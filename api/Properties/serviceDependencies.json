@@ -9,6 +9,9 @@
       "ignored": "true",
       "type": "mssql",
       "connectionId": "ConnectionStrings:Connection"
+    },
+    "apis1": {
+      "type": "apis"
     }
   }
 }

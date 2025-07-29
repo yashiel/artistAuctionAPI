@@ -15,6 +15,13 @@
         "dotnet-msidentity"
       ],
       "rollForward": false
+    },
+    "swashbuckle.aspnetcore.cli": {
+      "version": "9.0.3",
+      "commands": [
+        "swagger"
+      ],
+      "rollForward": false
     }
   }
 }
