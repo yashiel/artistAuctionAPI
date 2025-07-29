@@ -1,11 +1,10 @@
 ﻿using api.Data;
 using api.Enum;
-using api.Interfaces;
 using api.Models;
-using api.Services;
+using api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace api.Repository;
+namespace api.Services.Implementation;
 
 public class OrderRepository : IOrderService
 {

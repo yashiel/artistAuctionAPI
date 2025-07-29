@@ -7,8 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using api.Controllers;
-using api.Interfaces;
-using api.Repository;
+using api.Services.Implementation;
+using api.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 

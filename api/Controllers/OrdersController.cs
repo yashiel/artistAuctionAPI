@@ -7,9 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using api.Data;
 using api.Enum;
-using api.Interfaces;
 using api.Models;
 using api.Services;
+using api.Services.Interfaces;
 
 namespace api.Controllers
 {

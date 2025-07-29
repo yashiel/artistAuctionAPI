@@ -1,7 +1,7 @@
 ﻿using api.Enum;
 using api.Models;
 
-namespace api.Interfaces;
+namespace api.Services.Interfaces;
 
 public interface IOrderService
 {
