@@ -8,11 +8,12 @@ public class Artist
     public int Id { get; set; }
 
     [Required]
-    [MaxLength(100)]
+    [StringLength(100, MinimumLength = 3)]
     public string Name { get; set; }
     public string? ImageUrl { get; set; }
     [MaxLength(500)]
     public string? Bio { get; set; }
+    [StringLength(100, MinimumLength = 3)]
     public string? Genre { get; set; }
     public string? Country { get; set; }
     public DateTime? BirthDate { get; set; }
