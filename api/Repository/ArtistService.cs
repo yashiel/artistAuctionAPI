@@ -1,10 +1,9 @@
 ﻿using api.Data;
 using api.Models;
-using Microsoft.Extensions.Logging;
+using api.Services;
 using Microsoft.EntityFrameworkCore;
 
-
-namespace api.Services;
+namespace api.Repository;
 
 public class ArtistService : IArtistService
 {
