@@ -2,13 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using api.Data;
+using api.Models;
+using api.Models.DTOs;
+using api.Services;
+using api.Services.Interfaces;
+using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using api.Data;
-using api.Models;
-using api.Services;
-using api.Services.Interfaces;
 
 namespace api.Controllers
 {
@@ -27,7 +29,7 @@ namespace api.Controllers
 
         // GET: api/Reviews
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Review>>> GetReviews()
+        public async Task<ActionResult<IEnumerable<ReviewDTO>>> GetReviews()
         {
             try
             {
@@ -39,7 +41,8 @@ namespace api.Controllers
                     return NotFound("No reviews found.");
                 }
                 _logger.LogInformation($"Found {reviews.Count()} reviews.");
-                return Ok(reviews);
+                var reviewDTOs = reviews.Adapt<IEnumerable<ReviewDTO>>();
+                return Ok(reviewDTOs);
             }
             catch (Exception exception)
             {
@@ -50,7 +53,7 @@ namespace api.Controllers
 
         // GET: api/Reviews/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Review>> GetReview(int id)
+        public async Task<ActionResult<ReviewDTO>> GetReview(int id)
         {
             try
             {
@@ -61,7 +64,7 @@ namespace api.Controllers
                     _logger.LogWarning($"Review with ID {id} not found.");
                     return NotFound($"Review with ID {id} not found.");
                 }
-                return Ok(review);
+                return Ok(review.Adapt<ReviewDTO>());
             }
             catch (Exception exception)
             {
@@ -73,15 +76,13 @@ namespace api.Controllers
         // PUT: api/Reviews/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutReview(int id, Review review)
+        public async Task<IActionResult> PutReview(int id, CreateReviewDTO reviewDto)
         {
-            if (id != review.Id)
-            {
-                _logger.LogWarning($"Review ID {id} does not match the provided review ID {review.Id}.");
-                return BadRequest("Review ID mismatch.");
-            }
+            
             try
             {
+                var review = reviewDto.Adapt<Review>();
+                review.Id = id;
                 _logger.LogInformation($"Updating review with ID {id}.");
                 await _reviewService.UpdateReviewAsync(id, review);
                 _logger.LogInformation($"Review with ID {id} updated successfully.");
@@ -110,19 +111,20 @@ namespace api.Controllers
         // POST: api/Reviews
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Review>> PostReview(Review review)
+        public async Task<ActionResult<ReviewDTO>> PostReview(CreateReviewDTO createReviewDTO)
         {
             try
             {
-                if (review == null)
+                if (createReviewDTO == null)
                 {
                     _logger.LogWarning("Received null review object.");
                     return BadRequest("Review cannot be null.");
                 }
                 _logger.LogInformation("Creating a new review.");
-                    await _reviewService.AddReviewAsync(review);
+                var review = createReviewDTO.Adapt<Review>();
+                await _reviewService.AddReviewAsync(review);
                 _logger.LogInformation($"Review with ID {review.Id} created successfully.");
-                return CreatedAtAction(nameof(GetReview), new { id = review.Id }, review);
+                return CreatedAtAction(nameof(GetReview), new { id = review.Id }, review.Adapt<ReviewDTO>());
             }
             catch (Exception exception)
             {
@@ -157,7 +159,7 @@ namespace api.Controllers
 
         // GET: api/Reviews/Product/{productId}
         [HttpGet("Product/{productId}")]
-        public async Task<ActionResult<IEnumerable<Review>>> GetReviewsByProductId(int productId)
+        public async Task<ActionResult<IEnumerable<ReviewDTO>>> GetReviewsByProductId(int productId)
         {
             try
             {
@@ -168,7 +170,7 @@ namespace api.Controllers
                     _logger.LogWarning($"No reviews found for product with ID {productId}.");
                     return NotFound($"No reviews found for product with ID {productId}.");
                 }
-                return Ok(reviews);
+                return Ok(reviews.Adapt<IEnumerable<ReviewDTO>>());
             }
             catch (Exception exception)
             {
@@ -179,7 +181,7 @@ namespace api.Controllers
 
         // GET: api/Reviews/ByReviewerEmail/{email}
         [HttpGet("ByReviewerEmail/{email}")]
-        public async Task<ActionResult<IEnumerable<Review>>> GetReviewsByCustomerEmail(string email)
+        public async Task<ActionResult<IEnumerable<ReviewDTO>>> GetReviewsByCustomerEmail(string email)
         {
             try
             {
@@ -190,7 +192,7 @@ namespace api.Controllers
                     _logger.LogWarning($"No reviews found for customer with email {email}.");
                     return NotFound($"No reviews found for customer with email {email}.");
                 }
-                return Ok(reviews);
+                return Ok(reviews.Adapt<IEnumerable<ReviewDTO>>());
             }
             catch (Exception exception)
             {
@@ -201,7 +203,7 @@ namespace api.Controllers
 
         // GET: api/Reviews/ByRating/{rating}
         [HttpGet("ByRating/{rating}")]
-        public async Task<ActionResult<IEnumerable<Review>>> GetReviewsByRating(int rating)
+        public async Task<ActionResult<IEnumerable<ReviewDTO>>> GetReviewsByRating(int rating)
         {
             try
             {
@@ -212,7 +214,7 @@ namespace api.Controllers
                     _logger.LogWarning($"No reviews found with rating {rating}.");
                     return NotFound($"No reviews found with rating {rating}.");
                 }
-                return Ok(reviews);
+                return Ok(reviews.Adapt<IEnumerable<ReviewDTO>>());
             }
             catch (Exception exception)
             {

@@ -2,13 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using api.Data;
+using api.Models;
+using api.Models.DTOs;
+using api.Services;
+using api.Services.Interfaces;
+using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using api.Data;
-using api.Models;
-using api.Services;
-using api.Services.Interfaces;
 
 namespace api.Controllers
 {
@@ -27,7 +29,7 @@ namespace api.Controllers
 
         // GET: api/Events
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Event>>> GetEvents()
+        public async Task<ActionResult<IEnumerable<EventDTO>>> GetEvents()
         {
             try
             {
@@ -38,8 +40,9 @@ namespace api.Controllers
                     _logger.LogWarning("No events found in the database.");
                     return NotFound("No events found.");
                 }
+                var eventDtos = events.Adapt<IEnumerable<EventDTO>>();
                 _logger.LogInformation($"Found {events.Count()} events.");
-                return Ok(events);
+                return Ok(eventDtos);
             }
             catch (Exception exception)
             {
@@ -50,7 +53,7 @@ namespace api.Controllers
 
         // GET: api/Events/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Event>> GetEvent(int id)
+        public async Task<ActionResult<EventDTO>> GetEvent(int id)
         {
             try
             {
@@ -62,7 +65,8 @@ namespace api.Controllers
                     return NotFound($"Event with ID {id} not found.");
                 }
                 _logger.LogInformation($"Event with ID {id} found.");
-                return Ok(@event);
+                var eventDto = @event.Adapt<EventDTO>();
+                return Ok(eventDto);
             }
             catch (Exception exception)
             {
@@ -74,17 +78,18 @@ namespace api.Controllers
         // PUT: api/Events/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutEvent(int id, Event @event)
+        public async Task<IActionResult> PutEvent(int id, EventDTO eventDto)
         {
             try
             {
-                if (id != @event.Id)
+                if (id != eventDto.Id)
                 {
-                    _logger.LogWarning($"Event ID mismatch: expected {id}, received {@event.Id}.");
+                    _logger.LogWarning($"Event ID mismatch: expected {id}, received {eventDto.Id}.");
                     return BadRequest("Event ID mismatch.");
                 }
 
                 _logger.LogInformation($"Updating event with ID {id}.");
+                var @event = eventDto.Adapt<Event>();
                 await _eventService.UpdateEventAsync(id, @event);
                 _logger.LogInformation($"Event with ID {id} updated successfully.");
                 return NoContent();
@@ -112,19 +117,21 @@ namespace api.Controllers
         // POST: api/Events
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Event>> PostEvent(Event @event)
+        public async Task<ActionResult<EventDTO>> PostEvent(CreateEventDTO eventDto)
         {
             try
             {
-                if(@event == null)
+                if(eventDto == null)
                 {
                     _logger.LogWarning("Received null event object.");
                     return BadRequest("Event cannot be null.");
                 }
+                var @event = eventDto.Adapt<Event>();
                 _logger.LogInformation("Adding a new event to the database.");
                 await _eventService.AddEventAsync(@event);
                 _logger.LogInformation($"Event with ID {@event.Id} added successfully.");
-                return CreatedAtAction("GetEvent", new { id = @event.Id }, @event);
+                var createdDto = @event.Adapt<EventDTO>();
+                return CreatedAtAction("GetEvent", new { id = @event.Id }, createdDto);
             }
             catch (Exception exception)
             {
@@ -159,7 +166,7 @@ namespace api.Controllers
 
         // GET: api/Events/dateRange
         [HttpGet("dateRange")]
-        public async Task<ActionResult<IEnumerable<Event>>> GetEventsByDateRange(DateTime startDate, DateTime endDate)
+        public async Task<ActionResult<IEnumerable<EventDTO>>> GetEventsByDateRange(DateTime startDate, DateTime endDate)
         {
             try
             {
@@ -170,8 +177,9 @@ namespace api.Controllers
                     _logger.LogWarning($"No events found between {startDate} and {endDate}.");
                     return NotFound($"No events found between {startDate} and {endDate}.");
                 }
+                var eventDtos = events.Adapt<IEnumerable<EventDTO>>();
                 _logger.LogInformation($"Found {events.Count()} events between {startDate} and {endDate}.");
-                return Ok(events);
+                return Ok(eventDtos);
             }
             catch (Exception exception)
             {

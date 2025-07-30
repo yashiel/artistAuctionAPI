@@ -1,14 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using api.Data;
+using api.Models;
+using api.Models.DTOs;
+using api.Services;
+using api.Services.Interfaces;
+using MailKit.Search;
+using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using api.Data;
-using api.Models;
-using api.Services;
-using api.Services.Interfaces;
 
 namespace api.Controllers
 {
@@ -27,19 +31,24 @@ namespace api.Controllers
 
         // GET: api/Products
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProducts([FromQuery] int? page = null, [FromQuery] int? pageSize = null)
         {
             try
             {
+                if (page <= 0 || pageSize <= 0)
+                    return BadRequest("Page and PageSize must be greater than zero.");
+                _logger.LogInformation($"Fetching products from page {page} with page size {pageSize}.");
+
                 _logger.LogInformation("Fetching all products from the database.");
-                var products = await _productService.GetAllProductsAsync();
+                var products = await _productService.GetAllProductsAsync(page, pageSize);
                 if (products == null || !products.Any())
                 {
                     _logger.LogWarning("No products found in the database.");
                     return NotFound("No products found.");
                 }
                 _logger.LogInformation($"Found {products.Count()} products.");
-                return Ok(products);
+                var productDtos = products.Adapt<IEnumerable<ProductDTO>>();
+                return Ok(productDtos);
             }
             catch (Exception exception)
             {
@@ -50,7 +59,7 @@ namespace api.Controllers
 
         // GET: api/Products/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProduct(int id)
+        public async Task<ActionResult<ProductDTO>> GetProduct(int id)
         {
             try
             {
@@ -62,7 +71,8 @@ namespace api.Controllers
                     return NotFound($"Product with ID {id} not found.");
                 }
                 _logger.LogInformation($"Product with ID {id} found.");
-                return Ok(product);
+                var productDto = product.Adapt<ProductDTO>();
+                return Ok(productDto);
             }
             catch (Exception exception)
             {
@@ -74,16 +84,15 @@ namespace api.Controllers
         // PUT: api/Products/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduct(int id, Product product)
+        public async Task<IActionResult> PutProduct(int id, ProductDTO productDto)
         {
-            if (id != product.Id)
-            {
+            if (id != productDto.Id)
                 return BadRequest("Product ID mismatch.");
-            }
 
             try
             {
                 _logger.LogInformation($"Updating product with ID {id}.");
+                var product = productDto.Adapt<Product>();
                 await _productService.UpdateProductAsync(id, product);
                 return NoContent();
             }
@@ -110,18 +119,23 @@ namespace api.Controllers
         // POST: api/Products
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Product>> PostProduct(Product product)
+        public async Task<ActionResult<ProductDTO>> PostProduct(CreateProductDTO createDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             try
             {
-                if (product == null)
+                if (createDto == null)
                 {
                     _logger.LogWarning("Received null product in POST request.");
                     return BadRequest("Product cannot be null.");
                 }
                 _logger.LogInformation("Creating a new product.");
-                    await _productService.AddProductAsync(product);
-                        return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
+                var product = createDto.Adapt<Product>();
+                await _productService.AddProductAsync(product);
+                var productDto = product.Adapt<ProductDTO>();
+                return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, productDto);
 
             }
             catch (Exception exception)
@@ -156,7 +170,7 @@ namespace api.Controllers
 
         // GET: api/Products/category/{category}
         [HttpGet("category/{category}")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProductsByCategory(string category)
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProductsByCategory(string category)
         {
             try
             {
@@ -167,7 +181,8 @@ namespace api.Controllers
                     _logger.LogWarning($"No products found in category '{category}'.");
                     return NotFound($"No products found in category '{category}'.");
                 }
-                return Ok(products);
+                var productDtos = products.Adapt<IEnumerable<ProductDTO>>();
+                return Ok(productDtos);
             }
             catch (Exception exception)
             {
@@ -177,8 +192,10 @@ namespace api.Controllers
         }
         // GET: api/Products/search/{searchTerm}
         [HttpGet("search/{searchTerm}")]
-        public async Task<ActionResult<IEnumerable<Product>>> SearchProducts(string searchTerm)
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> SearchProducts(string searchTerm)
         {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return BadRequest("Search term cannot be empty.");
             try
             {
                 _logger.LogInformation($"Searching for products with term '{searchTerm}'.");
@@ -188,7 +205,8 @@ namespace api.Controllers
                     _logger.LogWarning($"No products found matching search term '{searchTerm}'.");
                     return NotFound($"No products found matching search term '{searchTerm}'.");
                 }
-                return Ok(products);
+                var productDtos = products.Adapt<IEnumerable<ProductDTO>>();
+                return Ok(productDtos);
             }
             catch (Exception exception)
             {
@@ -199,7 +217,7 @@ namespace api.Controllers
 
         // GET: api/Products/artist/{artistId}
         [HttpGet("artist/{artistId}")]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProductsByArtist(int artistId)
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProductsByArtist(int artistId, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -210,7 +228,8 @@ namespace api.Controllers
                     _logger.LogWarning($"No products found for artist ID {artistId}.");
                     return NotFound($"No products found for artist ID {artistId}.");
                 }
-                return Ok(products);
+                var productDtos = products.Adapt<IEnumerable<ProductDTO>>();
+                return Ok(productDtos);
             }
             catch (Exception exception)
             {
