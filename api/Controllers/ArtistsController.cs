@@ -29,12 +29,16 @@ namespace api.Controllers
 
         // GET: api/Artists
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ArtistDTO>>> GetArtists()
+        public async Task<ActionResult<IEnumerable<ArtistDTO>>> GetArtists([FromQuery] int? page = null, [FromQuery] int? pageSize = null)
         {
             try
             {
+                if (page <= 0 || pageSize <= 0)
+                    return BadRequest("Page and PageSize must be greater than zero.");
+                _logger.LogInformation($"Fetching products from page {page} with page size {pageSize}.");
+
                 _logger.LogInformation("Fetching all artists from the database.");
-                var artists = await _artistService.GetAllArtistsAsync();
+                var artists = await _artistService.GetAllArtistsAsync(page, pageSize);
                 if (artists == null || !artists.Any())
                 {
                     _logger.LogWarning("No artists found in the database.");

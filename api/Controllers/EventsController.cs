@@ -29,12 +29,16 @@ namespace api.Controllers
 
         // GET: api/Events
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<EventDTO>>> GetEvents()
+        public async Task<ActionResult<IEnumerable<EventDTO>>> GetEvents([FromQuery] int? page = null, [FromQuery] int? pageSize = null)
         {
             try
             {
+                if (page <= 0 || pageSize <= 0)
+                    return BadRequest("Page and PageSize must be greater than zero.");
+                _logger.LogInformation($"Fetching products from page {page} with page size {pageSize}.");
+
                 _logger.LogInformation("Fetching all events from the database.");
-                var events = await _eventService.GetAllEventsAsync();
+                var events = await _eventService.GetAllEventsAsync(page, pageSize);
                 if (events == null || !events.Any())
                 {
                     _logger.LogWarning("No events found in the database.");

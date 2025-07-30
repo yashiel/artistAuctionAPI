@@ -12,9 +12,19 @@ public class EventRepository : IEventService
     {
         _context = context;
     }
-    public async Task<IEnumerable<Event>> GetAllEventsAsync()
+    public async Task<IEnumerable<Event>> GetAllEventsAsync(int? page = null, int? pageSize = null)
     {
-        return await _context.Events.ToListAsync();
+        var query = _context.Events
+            .AsQueryable();
+
+        // Apply pagination only if both page and pageSize are passed
+        if (page.HasValue && pageSize.HasValue)
+        {
+            query = query.Skip((page.Value - 1) * pageSize.Value)
+                .Take(pageSize.Value);
+        }
+
+        return await query.ToListAsync();
     }
     public async Task<Event> GetEventByIdAsync(int id)
     {

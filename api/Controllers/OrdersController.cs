@@ -30,12 +30,17 @@ namespace api.Controllers
 
         // GET: api/Orders
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<OrderDTO>>> GetOrders()
+        public async Task<ActionResult<IEnumerable<OrderDTO>>> GetOrders([FromQuery] int? page = null, [FromQuery] int? pageSize = null)
         {
             try
             {
+                if (page <= 0 || pageSize <= 0)
+                    return BadRequest("Page and PageSize must be greater than zero.");
+                _logger.LogInformation($"Fetching products from page {page} with page size {pageSize}.");
+
+
                 _logger.LogInformation("Fetching all orders from the database.");
-                var orders = await _orderService.GetAllOrdersAsync();
+                var orders = await _orderService.GetAllOrdersAsync(page, pageSize);
                 if (orders == null || !orders.Any())
                 {
                     _logger.LogWarning("No orders found in the database.");

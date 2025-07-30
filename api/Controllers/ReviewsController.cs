@@ -10,6 +10,7 @@ using api.Services.Interfaces;
 using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 
 namespace api.Controllers
@@ -29,12 +30,17 @@ namespace api.Controllers
 
         // GET: api/Reviews
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ReviewDTO>>> GetReviews()
+        public async Task<ActionResult<IEnumerable<ReviewDTO>>> GetReviews([FromQuery] int? page = null, [FromQuery] int? pageSize = null)
         {
             try
             {
+                if (page <= 0 || pageSize <= 0)
+                    return BadRequest("Page and PageSize must be greater than zero.");
+                _logger.LogInformation($"Fetching products from page {page} with page size {pageSize}.");
+
+
                 _logger.LogInformation("Fetching all reviews from the database.");
-                var reviews = await _reviewService.GetAllReviewsAsync();
+                var reviews = await _reviewService.GetAllReviewsAsync(page, pageSize);
                 if (reviews == null || !reviews.Any())
                 {
                     _logger.LogWarning("No reviews found in the database.");
@@ -159,12 +165,17 @@ namespace api.Controllers
 
         // GET: api/Reviews/Product/{productId}
         [HttpGet("Product/{productId}")]
-        public async Task<ActionResult<IEnumerable<ReviewDTO>>> GetReviewsByProductId(int productId)
+        public async Task<ActionResult<IEnumerable<ReviewDTO>>> GetReviewsByProductId(int productId, [FromQuery] int? page = null, [FromQuery] int? pageSize = null)
         {
             try
             {
+                if ((page.HasValue && page <= 0) || (pageSize.HasValue && pageSize <= 0))
+                    return BadRequest("Page and PageSize must be greater than zero.");
+
+                _logger.LogInformation($"Fetching reviews for product {productId} - page {page}, page size {pageSize}");
+
                 _logger.LogInformation($"Fetching reviews for product with ID {productId}.");
-                var reviews = await _reviewService.GetReviewsByProductIdAsync(productId);
+                var reviews = await _reviewService.GetReviewsByProductIdAsync(productId, page, pageSize);
                 if (reviews == null || !reviews.Any())
                 {
                     _logger.LogWarning($"No reviews found for product with ID {productId}.");
@@ -181,12 +192,17 @@ namespace api.Controllers
 
         // GET: api/Reviews/ByReviewerEmail/{email}
         [HttpGet("ByReviewerEmail/{email}")]
-        public async Task<ActionResult<IEnumerable<ReviewDTO>>> GetReviewsByCustomerEmail(string email)
+        public async Task<ActionResult<IEnumerable<ReviewDTO>>> GetReviewsByCustomerEmail(string email, [FromQuery] int? page = null, [FromQuery] int? pageSize = null)
         {
             try
             {
+                if ((page.HasValue && page <= 0) || (pageSize.HasValue && pageSize <= 0))
+                    return BadRequest("Page and PageSize must be greater than zero.");
+
+                _logger.LogInformation($"Fetching reviews for product {email} - page {page}, page size {pageSize}");
+
                 _logger.LogInformation($"Fetching reviews for customer with email {email}.");
-                var reviews = await _reviewService.GetReviewsByCustomerEmailAsync(email);
+                var reviews = await _reviewService.GetReviewsByCustomerEmailAsync(email, page, pageSize);
                 if (reviews == null || !reviews.Any())
                 {
                     _logger.LogWarning($"No reviews found for customer with email {email}.");
@@ -203,12 +219,17 @@ namespace api.Controllers
 
         // GET: api/Reviews/ByRating/{rating}
         [HttpGet("ByRating/{rating}")]
-        public async Task<ActionResult<IEnumerable<ReviewDTO>>> GetReviewsByRating(int rating)
+        public async Task<ActionResult<IEnumerable<ReviewDTO>>> GetReviewsByRating(int rating, [FromQuery] int? page = null, [FromQuery] int? pageSize = null)
         {
             try
             {
+                if ((page.HasValue && page <= 0) || (pageSize.HasValue && pageSize <= 0))
+                    return BadRequest("Page and PageSize must be greater than zero.");
+
+                _logger.LogInformation($"Fetching reviews for product {rating} - page {page}, page size {pageSize}");
+
                 _logger.LogInformation($"Fetching reviews with rating {rating}.");
-                var reviews = await _reviewService.GetReviewsByRatingAsync(rating);
+                var reviews = await _reviewService.GetReviewsByRatingAsync(rating, page, pageSize);
                 if (reviews == null || !reviews.Any())
                 {
                     _logger.LogWarning($"No reviews found with rating {rating}.");

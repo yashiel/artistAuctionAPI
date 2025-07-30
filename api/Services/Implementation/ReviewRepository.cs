@@ -1,7 +1,9 @@
 ﻿using api.Data;
 using api.Models;
 using api.Services.Interfaces;
+using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace api.Services.Implementation;
 
@@ -12,9 +14,19 @@ public class ReviewRepository : IReviewService
     {
         _context = context;
     }
-    public async Task<IEnumerable<Review>> GetAllReviewsAsync()
+    public async Task<IEnumerable<Review>> GetAllReviewsAsync(int? page = null, int? pageSize = null)
     {
-        return await _context.Reviews.ToListAsync();
+        var query = _context.Reviews
+            .AsQueryable();
+
+        // Apply pagination only if both page and pageSize are passed
+        if (page.HasValue && pageSize.HasValue)
+        {
+            query = query.Skip((page.Value - 1) * pageSize.Value)
+                .Take(pageSize.Value);
+        }
+
+        return await query.ToListAsync();
     }
     public async Task<Review> GetReviewByIdAsync(int id)
     {
@@ -39,22 +51,46 @@ public class ReviewRepository : IReviewService
             await _context.SaveChangesAsync();
         }
     }
-    public async Task<IEnumerable<Review>> GetReviewsByProductIdAsync(int productId)
+    public async Task<IEnumerable<Review>> GetReviewsByProductIdAsync(int productId, int? page = null, int? pageSize = null)
     {
-        return await _context.Reviews
+        IOrderedQueryable<Review> query = _context.Reviews
             .Where(r => r.ProductId == productId)
-            .ToListAsync();
+            .OrderBy(r => r.Id); // Always order before skip/take
+
+        if (page.HasValue && pageSize.HasValue)
+        {
+            var skip = (page.Value - 1) * pageSize.Value;
+            query = (IOrderedQueryable<Review>)query.Skip(skip).Take(pageSize.Value);
+        }
+
+        return await query.ToListAsync();
     }
-    public async Task<IEnumerable<Review>> GetReviewsByCustomerEmailAsync(string email)
+    public async Task<IEnumerable<Review>> GetReviewsByCustomerEmailAsync(string email, int? page = null, int? pageSize = null)
     {
-        return await _context.Reviews
-                .Where(r => r.ReviewerEmail == email)
-            .ToListAsync();
+        IOrderedQueryable<Review> query = _context.Reviews
+            .Where(r => r.ReviewerEmail == email)
+            .OrderBy(r => r.Id); // Always order before skip/take
+
+        if (page.HasValue && pageSize.HasValue)
+        {
+            var skip = (page.Value - 1) * pageSize.Value;
+            query = (IOrderedQueryable<Review>)query.Skip(skip).Take(pageSize.Value);
+        }
+
+        return await query.ToListAsync();
     }
-    public async Task<IEnumerable<Review>> GetReviewsByRatingAsync(int rating)
+    public async Task<IEnumerable<Review>> GetReviewsByRatingAsync(int rating, int? page = null, int? pageSize = null)
     {
-        return await _context.Reviews
+        IOrderedQueryable<Review> query = _context.Reviews
             .Where(r => r.Rating == rating)
-            .ToListAsync();
+            .OrderBy(r => r.Id); // Always order before skip/take
+
+        if (page.HasValue && pageSize.HasValue)
+        {
+            var skip = (page.Value - 1) * pageSize.Value;
+            query = (IOrderedQueryable<Review>)query.Skip(skip).Take(pageSize.Value);
+        }
+
+        return await query.ToListAsync();
     }
 }

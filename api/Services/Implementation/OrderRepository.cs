@@ -13,9 +13,19 @@ public class OrderRepository : IOrderService
     {
         _context = context;
     }
-    public async Task<IEnumerable<Order>> GetAllOrdersAsync()
+    public async Task<IEnumerable<Order>> GetAllOrdersAsync(int? page = null, int? pageSize = null)
     {
-        return await _context.Orders.ToListAsync();
+        var query = _context.Orders
+            .AsQueryable();
+
+        // Apply pagination only if both page and pageSize are passed
+        if (page.HasValue && pageSize.HasValue)
+        {
+            query = query.Skip((page.Value - 1) * pageSize.Value)
+                .Take(pageSize.Value);
+        }
+
+        return await query.ToListAsync();
     }
     public async Task<Order> GetOrderByIdAsync(int id)
     {
