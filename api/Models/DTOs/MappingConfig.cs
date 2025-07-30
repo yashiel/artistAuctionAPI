@@ -22,6 +22,7 @@ public class MappingConfig : IRegister
         config.NewConfig<Product, ProductDTO>();
         config.NewConfig<CreateProductDTO, Product>()
             .Map(dest => dest.Price, src => src.Price >= 0 ? src.Price : 0.0m);
+        config.NewConfig<UpdateProductDTO, Product>();
         config.NewConfig<Review, ReviewDTO>();
         config.NewConfig<CreateReviewDTO, Review>()
             .Map(dest => dest.Rating, src => src.Rating >= 1 && src.Rating <= 5 ? src.Rating : 1)

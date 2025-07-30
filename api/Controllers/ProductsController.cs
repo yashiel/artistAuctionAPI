@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using api.Data;
 using api.Models;
 using api.Models.DTOs;
 using api.Services;
 using api.Services.Interfaces;
+using MailKit.Search;
 using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -29,12 +31,16 @@ namespace api.Controllers
 
         // GET: api/Products
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProducts()
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProducts([FromQuery] int? page = null, [FromQuery] int? pageSize = null)
         {
             try
             {
+                if (page <= 0 || pageSize <= 0)
+                    return BadRequest("Page and PageSize must be greater than zero.");
+                _logger.LogInformation($"Fetching products from page {page} with page size {pageSize}.");
+
                 _logger.LogInformation("Fetching all products from the database.");
-                var products = await _productService.GetAllProductsAsync();
+                var products = await _productService.GetAllProductsAsync(page, pageSize);
                 if (products == null || !products.Any())
                 {
                     _logger.LogWarning("No products found in the database.");
@@ -81,9 +87,7 @@ namespace api.Controllers
         public async Task<IActionResult> PutProduct(int id, ProductDTO productDto)
         {
             if (id != productDto.Id)
-            {
                 return BadRequest("Product ID mismatch.");
-            }
 
             try
             {
@@ -115,17 +119,20 @@ namespace api.Controllers
         // POST: api/Products
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<ProductDTO>> PostProduct(CreateProductDTO createProductDto)
+        public async Task<ActionResult<ProductDTO>> PostProduct(CreateProductDTO createDto)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             try
             {
-                if (createProductDto == null)
+                if (createDto == null)
                 {
                     _logger.LogWarning("Received null product in POST request.");
                     return BadRequest("Product cannot be null.");
                 }
                 _logger.LogInformation("Creating a new product.");
-                var product = createProductDto.Adapt<Product>();
+                var product = createDto.Adapt<Product>();
                 await _productService.AddProductAsync(product);
                 var productDto = product.Adapt<ProductDTO>();
                 return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, productDto);
@@ -187,6 +194,8 @@ namespace api.Controllers
         [HttpGet("search/{searchTerm}")]
         public async Task<ActionResult<IEnumerable<ProductDTO>>> SearchProducts(string searchTerm)
         {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                return BadRequest("Search term cannot be empty.");
             try
             {
                 _logger.LogInformation($"Searching for products with term '{searchTerm}'.");
@@ -208,7 +217,7 @@ namespace api.Controllers
 
         // GET: api/Products/artist/{artistId}
         [HttpGet("artist/{artistId}")]
-        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProductsByArtist(int artistId)
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProductsByArtist(int artistId, CancellationToken cancellationToken = default)
         {
             try
             {
