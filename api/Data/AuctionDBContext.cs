@@ -8,7 +8,7 @@
 
     public class AuctionDbContext : IdentityDbContext<IdentityUser>
     {
-        public AuctionDbContext(DbContextOptions options) : base(options) { }
+        public AuctionDbContext(DbContextOptions<AuctionDbContext> options) : base(options) { }
 
 
         public DbSet<Event> Events { get; set; } = null!;

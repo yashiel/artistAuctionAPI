@@ -4,6 +4,7 @@ using api.Data;
 using api.Services;
 using api.Services.Implementation;
 using api.Services.Interfaces;
+using AspNetCoreRateLimit;
 using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -24,6 +25,16 @@ builder.Services.AddCors(options =>
             .AllowAnyHeader());
 });
 
+// Add memory cache (required)
+builder.Services.AddMemoryCache();
+
+// Load ClientRateLimiting config
+builder.Services.Configure<ClientRateLimitOptions>(builder.Configuration.GetSection("ClientRateLimiting"));
+builder.Services.Configure<ClientRateLimitPolicies>(builder.Configuration.GetSection("ClientRateLimitPolicies"));
+
+builder.Services.AddInMemoryRateLimiting();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+
 
 // Add services to the container.
 
@@ -31,7 +42,9 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
-    }); 
+    });
+
+// Register services
 builder.Services.AddScoped<IArtistService, ArtistRepository>();
 builder.Services.AddScoped<IEventService, EventRepository>();
 builder.Services.AddScoped<IOrderService, OrderRepository>();
@@ -50,39 +63,45 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// Configure Entity Framework Core with SQLite
 builder.Services.AddDbContext<AuctionDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("Connection")));
 
+// Configure Identity
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<AuctionDbContext>().AddDefaultTokenProviders();
 
+// Configure Identity options
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 builder.Services.AddScoped<EmailService>();
 
 
 builder.Services.AddScoped<RolesController>();
 
+var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+
 builder.Services.AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     })
     .AddJwtBearer(options =>
     {
+        options.RequireHttpsMetadata = true;
+        options.SaveToken = true;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Issuer"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtIssuer,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
     });
-
-
-
 
 
 
@@ -98,15 +117,25 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-//app.UseAuthorization();
+
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseClientRateLimiting();
 
 app.MapControllers();
 
-app.UseAuthentication();
-
-app.UseAuthorization();
-
 app.UseCors("AllowAll");
+
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
+    context.Response.Headers.Append("Content-Security-Policy", "default-src 'self'");
+    await next();
+});
+
 
 app.Run();
 
