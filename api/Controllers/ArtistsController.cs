@@ -2,13 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using api.Data;
+using api.Models;
+using api.Models.DTOs;
+using api.Services;
+using api.Services.Interfaces;
+using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using api.Data;
-using api.Models;
-using api.Services;
-using api.Services.Interfaces;
 
 namespace api.Controllers
 {
@@ -27,7 +29,7 @@ namespace api.Controllers
 
         // GET: api/Artists
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Artist>>> GetArtists()
+        public async Task<ActionResult<IEnumerable<ArtistDTO>>> GetArtists()
         {
             try
             {
@@ -39,7 +41,8 @@ namespace api.Controllers
                     return NotFound("No artists found.");
                 }
                 _logger.LogInformation($"Found {artists.Count()} artists.");
-                return Ok(artists);
+                var artistDtos = artists.Adapt<List<ArtistDTO>>();
+                return Ok(artistDtos);
             }
             catch (Exception exception)
             {
@@ -50,7 +53,7 @@ namespace api.Controllers
 
         // GET: api/Artists/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Artist>> GetArtist(int id)
+        public async Task<ActionResult<ArtistDTO>> GetArtist(int id)
         {
             try
             {
@@ -62,7 +65,7 @@ namespace api.Controllers
                     return NotFound($"Artist with ID {id} not found.");
                 }
                 _logger.LogInformation($"Artist with ID {id} found.");
-                return Ok(artist);
+                return Ok(artist.Adapt<ArtistDTO>());
             }
             catch (Exception exception)
             {
@@ -74,8 +77,10 @@ namespace api.Controllers
         // PUT: api/Artists/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutArtist(int id, Artist artist)
+        public async Task<IActionResult> PutArtist(int id, CreateArtistDTO artistDto)
         {
+            var artist = artistDto.Adapt<Artist>();
+            artist.Id = id;
             try
             {
                 if (id != artist.Id)
@@ -111,18 +116,19 @@ namespace api.Controllers
         // POST: api/Artists
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Artist>> PostArtist(Artist artist)
+        public async Task<ActionResult<ArtistDTO>> PostArtist(CreateArtistDTO artistDto)
         {
             try
             {
-                if (artist == null)
+                if (artistDto == null)
                 {
                     _logger.LogWarning("Recieved empty student object");
                     return BadRequest("Artist object cannot be null.");
                 }
+                var artist = artistDto.Adapt<Artist>();
                 await _artistService.AddArtistAsync(artist);
                 _logger.LogInformation($"Artist with ID {artist.Id} created successfully.");
-                return CreatedAtAction("GetArtist", new { id = artist.Id }, artist);
+                return CreatedAtAction("GetArtist", new { id = artist.Id }, artist.Adapt<ArtistDTO>());
             }
             catch (Exception exception)
             {

@@ -2,14 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using api.Data;
 using api.Enum;
 using api.Models;
+using api.Models.DTOs;
 using api.Services;
 using api.Services.Interfaces;
+using Mapster;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.Controllers
 {
@@ -28,7 +30,7 @@ namespace api.Controllers
 
         // GET: api/Orders
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Order>>> GetOrders()
+        public async Task<ActionResult<IEnumerable<OrderDTO>>> GetOrders()
         {
             try
             {
@@ -40,7 +42,8 @@ namespace api.Controllers
                     return NotFound("No orders found.");
                 }
                 _logger.LogInformation($"Found {orders.Count()} orders.");
-                return Ok(orders);
+                var orderDtos = orders.Adapt<IEnumerable<OrderDTO>>();
+                return Ok(orderDtos);
             }
             catch (Exception exception)
             {
@@ -51,7 +54,7 @@ namespace api.Controllers
 
         // GET: api/Orders/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Order>> GetOrder(int id)
+        public async Task<ActionResult<OrderDTO>> GetOrder(int id)
         {
             try
             {
@@ -62,7 +65,8 @@ namespace api.Controllers
                     _logger.LogWarning($"Order with ID {id} not found.");
                     return NotFound($"Order with ID {id} not found.");
                 }
-                return Ok(order);
+                var orderDto = order.Adapt<OrderDTO>();
+                return Ok(orderDto);
             }
             catch (Exception exception)
             {
@@ -74,16 +78,17 @@ namespace api.Controllers
         // PUT: api/Orders/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutOrder(int id, Order order)
+        public async Task<IActionResult> PutOrder(int id, OrderDTO orderDto)
         {
             try
             {
-                if (id != order.Id)
+                if (id != orderDto.Id)
                 {
-                    _logger.LogWarning($"Order ID mismatch: {id} does not match {order.Id}.");
+                    _logger.LogWarning($"Order ID mismatch: {id} does not match {orderDto.Id}.");
                     return BadRequest("Order ID mismatch.");
                 }
                 _logger.LogInformation($"Updating order with ID {id}.");
+                var order = orderDto.Adapt<Order>();
                 await _orderService.UpdateOrderAsync(id, order);
                 return NoContent();
             }
@@ -110,19 +115,23 @@ namespace api.Controllers
         // POST: api/Orders
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Order>> PostOrder(Order order)
+        public async Task<ActionResult<OrderDTO>> PostOrder(OrderDTO orderDto)
         {
             try
             {
-                if (order == null)
+                if (orderDto == null)
                 {
                     _logger.LogWarning("Received null order object.");
                     return BadRequest("Order cannot be null.");
                 }
                 _logger.LogInformation("Adding a new order to the database.");
+                
+                var order = orderDto.Adapt<Order>();
                 await _orderService.AddOrderAsync(order);
+
+                var createdOrderDto = order.Adapt<OrderDTO>();
                 _logger.LogInformation($"Order with ID {order.Id} created successfully.");
-                return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, order);
+                return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, createdOrderDto);
             }
             catch (Exception exception)
             {
@@ -157,7 +166,7 @@ namespace api.Controllers
 
         // GET: api/Orders/ByCustomerEmail/{email}
         [HttpGet("ByCustomerEmail/{email}")]
-        public async Task<ActionResult<IEnumerable<Order>>> GetOrdersByCustomerEmail(string email)
+        public async Task<ActionResult<IEnumerable<OrderDTO>>> GetOrdersByCustomerEmail(string email)
         {
             try
             {
@@ -168,7 +177,8 @@ namespace api.Controllers
                     _logger.LogWarning($"No orders found for customer with email {email}.");
                     return NotFound($"No orders found for customer with email {email}.");
                 }
-                return Ok(orders);
+                var orderDtos = orders.Adapt<IEnumerable<OrderDTO>>();
+                return Ok(orderDtos);
             }
             catch (Exception exception)
             {
@@ -179,7 +189,7 @@ namespace api.Controllers
 
         // GET: api/Orders/ByStatus/{status}
         [HttpGet("ByStatus/{status}")]
-        public async Task<ActionResult<IEnumerable<Order>>> GetOrdersByStatus(OrderStatus status)
+        public async Task<ActionResult<IEnumerable<OrderDTO>>> GetOrdersByStatus(OrderStatus status)
         {
             try
             {
@@ -190,7 +200,8 @@ namespace api.Controllers
                     _logger.LogWarning($"No orders found with status {status}.");
                     return NotFound($"No orders found with status {status}.");
                 }
-                return Ok(orders);
+                var orderDtos = orders.Adapt<IEnumerable<OrderDTO>>();
+                return Ok(orderDtos);
             }
             catch (Exception exception)
             {

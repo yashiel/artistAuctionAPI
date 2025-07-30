@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using api.Data;
+using api.Models;
+using api.Models.DTOs;
+using Mapster;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using api.Data;
-using api.Models;
 
 namespace api.Controllers
 {
@@ -23,14 +25,15 @@ namespace api.Controllers
 
         // GET: api/Categories
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Category>>> GetCategory()
+        public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetCategory()
         {
-            return await _context.Category.ToListAsync();
+            var categories = await _context.Category.ToListAsync();
+            return Ok(categories.Adapt<List<CategoryDTO>>());
         }
 
         // GET: api/Categories/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Category>> GetCategory(int id)
+        public async Task<ActionResult<CategoryDTO>> GetCategory(int id)
         {
             var category = await _context.Category.FindAsync(id);
 
@@ -39,18 +42,19 @@ namespace api.Controllers
                 return NotFound();
             }
 
-            return category;
+            return Ok(category.Adapt<CategoryDTO>());
         }
 
         // PUT: api/Categories/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCategory(int id, Category category)
+        public async Task<IActionResult> PutCategory(int id, CreateCategoryDTO categoryDto)
         {
-            if (id != category.Id)
-            {
-                return BadRequest();
-            }
+            var category = await _context.Category.FindAsync(id);
+            if (category == null)
+                return NotFound();
+
+            categoryDto.Adapt(category);
 
             _context.Entry(category).State = EntityState.Modified;
 
@@ -76,12 +80,13 @@ namespace api.Controllers
         // POST: api/Categories
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Category>> PostCategory(Category category)
+        public async Task<ActionResult<CategoryDTO>> PostCategory(CreateCategoryDTO categoryDto)
         {
+            var category = categoryDto.Adapt<Category>();
             _context.Category.Add(category);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetCategory", new { id = category.Id }, category);
+            return CreatedAtAction("GetCategory", new { id = category.Id }, category.Adapt<CategoryDTO>());
         }
 
         // DELETE: api/Categories/5

@@ -1,20 +1,37 @@
 using System.Text;
+using api.Controllers;
 using api.Data;
 using api.Services;
+using api.Services.Implementation;
+using api.Services.Interfaces;
+using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using api.Controllers;
-using api.Services.Implementation;
-using api.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
+TypeAdapterConfig.GlobalSettings.Scan(typeof(Program).Assembly);
+
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        policy => policy.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader());
+});
+
+
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    }); 
 builder.Services.AddScoped<IArtistService, ArtistRepository>();
 builder.Services.AddScoped<IEventService, EventRepository>();
 builder.Services.AddScoped<IOrderService, OrderRepository>();
@@ -88,6 +105,8 @@ app.MapControllers();
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.UseCors("AllowAll");
 
 app.Run();
 

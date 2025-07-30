@@ -29,6 +29,5 @@ public class Product
     [JsonIgnore]
     public Artist? Artist { get; set; }
 
-    [JsonIgnore]
     public ICollection<Review>? Reviews { get; set; }
 }
