@@ -9,8 +9,8 @@ public class EmailSettings
     public string FromEmail { get; set; } = string.Empty;
 
     public string ToEmail { get; set; } = string.Empty;
-    public string ToName { get; set; } = "Customer";
-    public string Subject { get; set; } = "Auction Notification";
-    public string FromName { get; set; } = "Auction Service";
+    public string ToName { get; set; }
+    public string Subject { get; set; }
+    public string FromName { get; set; }
     //public bool UseSsl { get; set; } = true;
 }

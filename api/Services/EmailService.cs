@@ -17,9 +17,9 @@ public class EmailService
     public void SendEmail(string toEmail, string subject, string body)
     {
         var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(_emailSettings.FromName, _emailSettings.FromEmail));
-        message.To.Add(new MailboxAddress(_emailSettings.ToName, _emailSettings.ToEmail));
-        message.Subject = _emailSettings.Subject;
+        message.From.Add(new MailboxAddress("Artist Auction App", _emailSettings.SmtpUser));
+        message.To.Add(new MailboxAddress("User", toEmail));
+        message.Subject = subject;
         var textPart = new TextPart("plain")
         {
             Text = body

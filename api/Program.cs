@@ -117,15 +117,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-app.UseClientRateLimiting();
-
-app.MapControllers();
-
 app.UseCors("AllowAll");
 
 app.Use(async (context, next) =>
@@ -136,6 +127,13 @@ app.Use(async (context, next) =>
     await next();
 });
 
+app.UseAuthentication();
+
+app.UseAuthorization();
+
+app.UseClientRateLimiting();
+
+app.MapControllers();
 
 app.Run();
 
