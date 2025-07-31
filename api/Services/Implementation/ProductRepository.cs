@@ -2,6 +2,7 @@
 using api.Models;
 using api.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace api.Services.Implementation;
 
@@ -63,35 +64,77 @@ public class ProductRepository : IProductService
         await _context.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<Product>> GetProductsByCategoryAsync(string category)
+    public async Task<IEnumerable<Product>> GetProductsByCategoryAsync(string category, int? page = null, int? pageSize = null)
     {
-        return await _context.Products
-            .Where(p => p.Category != null && p.Category.Name.ToLower() == category.ToLower())
+        var query = _context.Products
             .Include(p => p.Reviews)
-            .ToListAsync();
+            .Where(p => p.Category != null &&
+                        p.Category.Name.ToLower() == category.ToLower())
+            .AsQueryable();
+
+        // Apply pagination if both page and pageSize are provided
+        if (page.HasValue && pageSize.HasValue)
+        {
+            query = query.Skip((page.Value - 1) * pageSize.Value)
+                .Take(pageSize.Value);
+        }
+
+        // Execute query
+        return await query.ToListAsync();
     }
 
-    public async Task<IEnumerable<Product>> SearchProductsAsync(string searchTerm)
+    public async Task<IEnumerable<Product>> SearchProductsAsync(string searchTerm, int? page = null, int? pageSize = null)
     {
-        return await _context.Products
-            .Where(p => EF.Functions.Like(p.Name, $"%{searchTerm}%") || EF.Functions.Like(p.Description, $"%{searchTerm}%"))
+        
+        var query = _context.Products
             .Include(p => p.Reviews)
-            .ToListAsync();
+            .Where(p => EF.Functions.Like(p.Name, $"%{searchTerm}%")
+                        || EF.Functions.Like(p.Description, $"%{searchTerm}%"))
+            .AsQueryable();
+
+        // Apply pagination if both page and pageSize are provided
+        if (page.HasValue && pageSize.HasValue)
+        {
+            query = query.Skip((page.Value - 1) * pageSize.Value)
+                .Take(pageSize.Value);
+        }
+
+        // Execute the query
+        return await query.ToListAsync();
     }
 
-    public async Task<IEnumerable<Product>> GetProductsByArtistAsync(int artistId)
+    public async Task<IEnumerable<Product>> GetProductsByArtistAsync(int artistId, int? page = null, int? pageSize = null)
     {
-        return await _context.Products
+        var query = _context.Products
             .Where(p => p.ArtistId == artistId)
             .Include(p => p.Reviews)
-            .ToListAsync();
+            .OrderBy(p => p.Id); // Always order before skip/take
+
+        if (page.HasValue && pageSize.HasValue)
+        {
+            var skip = (page.Value - 1) * pageSize.Value;
+            query = (IOrderedQueryable<Product>)query.Skip(skip).Take(pageSize.Value);
+        }
+
+        return await query.ToListAsync();
     }
 
-    public async Task<IEnumerable<Product>> GetProductsByPriceRangeAsync(decimal minPrice, decimal maxPrice)
+    public async Task<IEnumerable<Product>> GetProductsByPriceRangeAsync(decimal minPrice, decimal maxPrice, int? page = null, int? pageSize = null)
     {
-        return await _context.Products
-            .Where(p => p.Price >= minPrice && p.Price <= maxPrice)
+        // Start building query
+        var query = _context.Products
             .Include(p => p.Reviews)
-            .ToListAsync();
+            .Where(p => p.Price >= minPrice && p.Price <= maxPrice)
+            .AsQueryable();
+
+        // Apply pagination only if both page and pageSize are provided
+        if (page.HasValue && pageSize.HasValue)
+        {
+            query = query.Skip((page.Value - 1) * pageSize.Value)
+                .Take(pageSize.Value);
+        }
+
+        // Execute the query
+        return await query.ToListAsync();
     }
 }

@@ -170,12 +170,16 @@ namespace api.Controllers
 
         // GET: api/Products/category/{category}
         [HttpGet("category/{category}")]
-        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProductsByCategory(string category)
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProductsByCategory(string category, [FromQuery] int? page = null, [FromQuery] int? pageSize = null)
         {
             try
             {
+                if (page <= 0 || pageSize <= 0)
+                    return BadRequest("Page and PageSize must be greater than zero.");
+                _logger.LogInformation($"Fetching products from page {page} with page size {pageSize}.");
+
                 _logger.LogInformation($"Fetching products in category '{category}'.");
-                var products = await _productService.GetProductsByCategoryAsync(category);
+                var products = await _productService.GetProductsByCategoryAsync(category, page, pageSize);
                 if (products == null || !products.Any())
                 {
                     _logger.LogWarning($"No products found in category '{category}'.");
@@ -192,14 +196,18 @@ namespace api.Controllers
         }
         // GET: api/Products/search/{searchTerm}
         [HttpGet("search/{searchTerm}")]
-        public async Task<ActionResult<IEnumerable<ProductDTO>>> SearchProducts(string searchTerm)
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> SearchProducts(string searchTerm, [FromQuery] int? page = null, [FromQuery] int? pageSize = null)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
                 return BadRequest("Search term cannot be empty.");
             try
             {
+                if (page <= 0 || pageSize <= 0)
+                    return BadRequest("Page and PageSize must be greater than zero.");
+                _logger.LogInformation($"Fetching products from page {page} with page size {pageSize}.");
+
                 _logger.LogInformation($"Searching for products with term '{searchTerm}'.");
-                var products = await _productService.SearchProductsAsync(searchTerm);
+                var products = await _productService.SearchProductsAsync(searchTerm, page, pageSize);
                 if (products == null || !products.Any())
                 {
                     _logger.LogWarning($"No products found matching search term '{searchTerm}'.");
@@ -217,12 +225,16 @@ namespace api.Controllers
 
         // GET: api/Products/artist/{artistId}
         [HttpGet("artist/{artistId}")]
-        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProductsByArtist(int artistId, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProductsByArtist(int artistId, [FromQuery] int? page = null, [FromQuery] int? pageSize = null)
         {
             try
             {
+                if (page <= 0 || pageSize <= 0)
+                    return BadRequest("Page and PageSize must be greater than zero.");
+                _logger.LogInformation($"Fetching products from page {page} with page size {pageSize}.");
+
                 _logger.LogInformation($"Fetching products by artist ID {artistId}.");
-                var products = await _productService.GetProductsByArtistAsync(artistId);
+                var products = await _productService.GetProductsByArtistAsync(artistId, page, pageSize);
                 if (products == null || !products.Any())
                 {
                     _logger.LogWarning($"No products found for artist ID {artistId}.");
@@ -237,5 +249,42 @@ namespace api.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while fetching products.");
             }
         }
+
+        // Get: api/Products/price/pricetange
+        [HttpGet("by-price-range")]
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProductsByPriceRange(
+            [FromQuery] decimal minPrice,
+            [FromQuery] decimal maxPrice,
+            [FromQuery] int? page = null,
+            [FromQuery] int? pageSize = null)
+        {
+            try
+            {
+                if (minPrice < 0 || maxPrice < 0 || minPrice > maxPrice)
+                    return BadRequest("Invalid price range.");
+
+                if (page <= 0 || pageSize <= 0)
+                    return BadRequest("Page and PageSize must be greater than zero.");
+
+                _logger.LogInformation($"Fetching products with price range {minPrice} - {maxPrice}, page {page}, page size {pageSize}.");
+
+                var products = await _productService.GetProductsByPriceRangeAsync(minPrice, maxPrice, page, pageSize);
+                if (products == null || !products.Any())
+                {
+                    _logger.LogWarning($"No products found in price range {minPrice} - {maxPrice}.");
+                    return NotFound($"No products found in the specified price range {minPrice} - {maxPrice}.");
+                }
+
+                var productDtos = products.Adapt<IEnumerable<ProductDTO>>();
+                return Ok(productDtos);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, $"An error occurred while fetching products in price range {minPrice} - {maxPrice}.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while fetching products.");
+            }
+        }
+
+
     }
 }

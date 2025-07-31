@@ -9,9 +9,9 @@ public interface IProductService
     Task AddProductAsync(Product product);
     Task UpdateProductAsync(int id, Product product);
     Task DeleteProductAsync(int id);
-    Task<IEnumerable<Product>> GetProductsByCategoryAsync(string category);
-    Task<IEnumerable<Product>> SearchProductsAsync(string searchTerm);
-    Task<IEnumerable<Product>> GetProductsByArtistAsync(int artistId);
-    Task<IEnumerable<Product>> GetProductsByPriceRangeAsync(decimal minPrice, decimal maxPrice);
+    Task<IEnumerable<Product>> GetProductsByCategoryAsync(string category, int? page = null, int? pageSize = null);
+    Task<IEnumerable<Product>> SearchProductsAsync(string searchTerm, int? page = null, int? pageSize = null);
+    Task<IEnumerable<Product>> GetProductsByArtistAsync(int artistId, int? page = null, int? pageSize = null);
+    Task<IEnumerable<Product>> GetProductsByPriceRangeAsync(decimal minPrice, decimal maxPrice, int? page = null, int? pageSize = null);
 
 }
