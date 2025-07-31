@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using api.Controllers;
 using api.Data;
@@ -114,6 +115,15 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+
+// **Auto-run migrations here**
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AuctionDbContext>();
+    db.Database.Migrate();  // applies any pending migrations
+}
+
 
 app.UseHttpsRedirection();
 
