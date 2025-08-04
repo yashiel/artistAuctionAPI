@@ -55,6 +55,7 @@ namespace api.Controllers
             }
         }
 
+        //yashi
         // GET: api/Events/5
         [HttpGet("{id}")]
         public async Task<ActionResult<EventDTO>> GetEvent(int id)
