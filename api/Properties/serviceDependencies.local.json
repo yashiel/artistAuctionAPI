@@ -1,10 +1,15 @@
 {
   "dependencies": {
-    "sqlite1": {
+    "mssql1": {
+      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('serviceConnectorResourceGroupName')]/providers/Microsoft.ServiceLinker/locations/southeastasia/connectors/ConnectionStringsConnection_3A719056F0",
       "secretStore": "LocalSecretsFile",
-      "type": "sqlite.local",
-      "connectionId": "ConnectionStrings:DatabaseConnection",
-      "dynamicId": null
+      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/yashidb/databases/ArtistAuctionDB",
+      "type": "mssql.azure",
+      "connectionId": "ConnectionStrings:Connection"
+    },
+    "sqlite1": {
+      "ignored": "true",
+      "type": "sqlite"
     }
   }
 }
