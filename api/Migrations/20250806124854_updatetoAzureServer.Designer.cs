@@ -12,8 +12,8 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(AuctionDbContext))]
-    [Migration("20250806085552_mssql.azure_migration_287")]
-    partial class mssqlazure_migration_287
+    [Migration("20250806124854_updatetoAzureServer")]
+    partial class updatetoAzureServer
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

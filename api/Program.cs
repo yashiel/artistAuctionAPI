@@ -66,7 +66,7 @@ builder.Services.AddSwaggerGen(c =>
 
 // Configure Entity Framework Core with SQLite
 builder.Services.AddDbContext<AuctionDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Connection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DatabaseConnection")));
 
 // Configure Identity
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
