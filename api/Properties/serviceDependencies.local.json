@@ -8,12 +8,9 @@
       "type": "secrets.user",
       "dynamicId": null
     },
-    "mssql1": {
-      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('serviceConnectorResourceGroupName')]/providers/Microsoft.ServiceLinker/locations/westus/connectors/ConnectionStringsDatabaseConnection_D1E1E9DC9F",
-      "secretStore": "LocalSecretsFile",
-      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourcegroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/api-dbserver/databases/api_db",
-      "type": "mssql.azure",
-      "connectionId": "ConnectionStrings:DatabaseConnection"
+    "apis1": {
+      "ignored": "true",
+      "type": "apis"
     }
   }
 }
