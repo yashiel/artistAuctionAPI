@@ -1,0 +1,45 @@
+name: Trigger auto deployment for api-app
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ master ]
+    paths:
+    - '**'
+    - '.github/workflows/api-app-AutoDeployTrigger-412ef9cf-1df3-498b-9044-d07b6a46d2fc.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:
+      
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.APIAPP_AZURE_CREDENTIALS }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }}
+          _dockerfilePathKey_: _dockerfilePath_
+          _targetLabelKey_: _targetLabel_
+          registryUrl: apiapp.azurecr.io
+          registryUsername: ${{ secrets.APIAPP_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.APIAPP_REGISTRY_PASSWORD }}
+          containerAppName: api-app
+          resourceGroup: artist_api
+          imageToBuild: apiapp.azurecr.io/api-app:${{ github.sha }}
+          
+            
+
+     
+
