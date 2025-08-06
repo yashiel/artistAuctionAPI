@@ -1,9 +1,7 @@
 ﻿using api.Data;
 using api.Models;
 using api.Services.Interfaces;
-using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace api.Services.Implementation;
 
