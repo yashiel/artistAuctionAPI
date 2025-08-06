@@ -1,13 +1,13 @@
-name: Build and deploy .NET application to container app artist-auction-api
+name: Build and deploy .NET application to container app api-app-20250806193934
 on:
   push:
     branches:
     - master
 env:
-  CONTAINER_APP_CONTAINER_NAME: yashis-container
-  CONTAINER_APP_NAME: artist-auction-api
+  CONTAINER_APP_CONTAINER_NAME: api-container
+  CONTAINER_APP_NAME: api-app-20250806193934
   CONTAINER_APP_RESOURCE_GROUP_NAME: api-app-20250731122450ResourceGroup
-  CONTAINER_REGISTRY_LOGIN_SERVER: artistauction.azurecr.io
+  CONTAINER_REGISTRY_LOGIN_SERVER: api20250806194428.azurecr.io
   DOCKER_FILE_PATH: api/Dockerfile
   PROJECT_NAME_FOR_DOCKER: api
 jobs:
@@ -22,8 +22,8 @@ jobs:
       uses: docker/login-action@v3
       with:
         registry: ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}
-        username: ${{ secrets.artistauction_USERNAME_3B46 }}
-        password: ${{ secrets.artistauction_PASSWORD_3B46 }}
+        username: ${{ secrets.api20250806194428_USERNAME_1EFE }}
+        password: ${{ secrets.api20250806194428_PASSWORD_1EFE }}
     - name: Build and push container image to registry
       uses: docker/build-push-action@v6
       with:
@@ -37,14 +37,14 @@ jobs:
     - name: Azure Login
       uses: azure/login@v2
       with:
-        creds: ${{ secrets.artist_auction_api_SPN }}
+        creds: ${{ secrets.api_app_20250806193934_SPN }}
     - name: Deploy to containerapp
       uses: azure/CLI@v2
       with:
         inlineScript: >
           az config set extension.use_dynamic_install=yes_without_prompt
 
-          az containerapp registry set --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} --server ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }} --username ${{ secrets.artistauction_USERNAME_3B46 }} --password ${{ secrets.artistauction_PASSWORD_3B46 }}
+          az containerapp registry set --name ${{ env.CONTAINER_APP_NAME }} --resource-group ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} --server ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }} --username ${{ secrets.api20250806194428_USERNAME_1EFE }} --password ${{ secrets.api20250806194428_PASSWORD_1EFE }}
 
           az containerapp update --name ${{ env.CONTAINER_APP_NAME }} --container-name ${{ env.CONTAINER_APP_CONTAINER_NAME }} --resource-group ${{ env.CONTAINER_APP_RESOURCE_GROUP_NAME }} --image ${{ env.CONTAINER_REGISTRY_LOGIN_SERVER }}/${{ env.PROJECT_NAME_FOR_DOCKER }}:${{ github.sha }}
     - name: logout
